@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using InventoryService.Models;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Threading.Tasks; 
 
 
 namespace InventoryService.Controllers
@@ -12,11 +12,11 @@ namespace InventoryService.Controllers
     [Route("api/[controller]")]
     public class InventoryController : ControllerBase
     {
-        private readonly InventoryContext _context;
+        private readonly InventoryContext _context; 
 
         public InventoryController(InventoryContext context)
         {
-            _context = context;
+            _context = context;         
         }
 
         [HttpGet]
@@ -35,7 +35,7 @@ namespace InventoryService.Controllers
             }
             return inventoryItem;
         }
-         [HttpGet("product/{productId}")]
+        [HttpGet("product/{productId}")]
         public async Task<ActionResult<InventoryItem>> GetByProductId(int productId)
         {
             var inventoryItem = await _context.InventoryItems.FirstOrDefaultAsync(i => i.ProductId == productId);
@@ -97,7 +97,7 @@ namespace InventoryService.Controllers
 
             return NoContent();
         }
-        
+
         [HttpPut("reduce")]
         public async Task<IActionResult> ReduceQuantity([FromBody] ReduceQuantityRequest request)
         {
@@ -118,5 +118,21 @@ namespace InventoryService.Controllers
             return NoContent();
         }
 
+        [HttpPut("increase")]
+        public async Task<IActionResult> IncreaseQuantity([FromBody] ReduceQuantityRequest request)
+        {
+            var inventoryItem = await _context.InventoryItems.FirstOrDefaultAsync(i => i.ProductId == request.ProductId);
+            if (inventoryItem == null)
+            {
+                return NotFound($"Product with ID {request.ProductId} not found.");
+            }
+
+            inventoryItem.Quantity += request.Quantity;
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        
     }
 }

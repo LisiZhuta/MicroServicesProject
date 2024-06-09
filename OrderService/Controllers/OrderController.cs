@@ -84,6 +84,32 @@ namespace OrderService.Controllers
             return CreatedAtAction(nameof(Get), new { id = order.Id }, order);
         }
 
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var order = await _context.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id);
+            if (order == null)
+            {
+                return BadRequest($"Order with id {id} exist");
+            }
+
+            // Add back the quantities to inventory
+            foreach (var item in order.Items)
+            {
+                var increased = await IncreaseInventoryQuantityAsync(item.ProductId, item.Quantity);
+                if (!increased)
+                {
+                    return BadRequest($"Could not increase quantity for product ID {item.ProductId}");
+                }
+            }
+
+            _context.Orders.Remove(order);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         private async Task<decimal?> GetProductPriceAsync(int productId)
         {
             var client = _httpClientFactory.CreateClient();
@@ -126,6 +152,15 @@ namespace OrderService.Controllers
             var response = await client.PutAsync($"http://localhost:5137/api/inventory/reduce", content); // Replace with actual URL and port
             return response.IsSuccessStatusCode;
         }
+        private async Task<bool> IncreaseInventoryQuantityAsync(int productId, int quantity)
+        {
+            var client = _httpClientFactory.CreateClient();
+            var content = new StringContent(JsonSerializer.Serialize(new { ProductId = productId, Quantity = quantity }), System.Text.Encoding.UTF8, "application/json");
+            var response = await client.PutAsync($"http://localhost:5137/api/inventory/increase", content); // Replace with actual URL and port
+            return response.IsSuccessStatusCode;
+        }
+
+        
     }
 
    
