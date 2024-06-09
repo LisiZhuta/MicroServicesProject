@@ -89,7 +89,7 @@ namespace InventoryService.Controllers
             var inventoryItem = await _context.InventoryItems.FindAsync(id);
             if (inventoryItem == null)
             {
-                return NotFound();
+                return NotFound($"Inventory with id {id} doesnt exist");
             }
 
             _context.InventoryItems.Remove(inventoryItem);
@@ -99,7 +99,7 @@ namespace InventoryService.Controllers
         }
 
         [HttpPut("reduce")]
-        public async Task<IActionResult> ReduceQuantity([FromBody] ReduceQuantityRequest request)
+        public async Task<IActionResult> ReduceQuantity([FromBody] QuantityRequest request)
         {
             var inventoryItem = await _context.InventoryItems.FirstOrDefaultAsync(i => i.ProductId == request.ProductId);
             if (inventoryItem == null)
@@ -119,7 +119,7 @@ namespace InventoryService.Controllers
         }
 
         [HttpPut("increase")]
-        public async Task<IActionResult> IncreaseQuantity([FromBody] ReduceQuantityRequest request)
+        public async Task<IActionResult> IncreaseQuantity([FromBody] QuantityRequest request)
         {
             var inventoryItem = await _context.InventoryItems.FirstOrDefaultAsync(i => i.ProductId == request.ProductId);
             if (inventoryItem == null)
