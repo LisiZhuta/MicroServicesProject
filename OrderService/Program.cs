@@ -14,6 +14,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient();
 
 // Read the JWT key from environment variables
 var key = Environment.GetEnvironmentVariable("JWT_KEY");
