@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using InventoryService.Models;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks; 
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace InventoryService.Controllers
@@ -13,28 +14,34 @@ namespace InventoryService.Controllers
     public class InventoryController : ControllerBase
     {
         private readonly InventoryContext _context; 
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public InventoryController(InventoryContext context)
+        public InventoryController(InventoryContext context,IHttpClientFactory httpClientFactory)
         {
-            _context = context;         
+            _context = context;     
+            _httpClientFactory=httpClientFactory;    
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<InventoryItem>>> Get()
         {
             return await _context.InventoryItems.ToListAsync();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult<InventoryItem>> Get(int id)
         {
             var inventoryItem = await _context.InventoryItems.FindAsync(id);
             if (inventoryItem == null)
             {
-                return NotFound();
+                return NotFound($"Inventory with ID {id} doesnt exist");
             }
             return inventoryItem;
         }
+        
+        
         [HttpGet("product/{productId}")]
         public async Task<ActionResult<InventoryItem>> GetByProductId(int productId)
         {
@@ -46,14 +53,21 @@ namespace InventoryService.Controllers
             return inventoryItem;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<InventoryItem>> Create(InventoryItem inventoryItem)
         {
+            var productExists = await CheckProductExistsAsync(inventoryItem.ProductId);
+            if (!productExists)
+                {
+                    return BadRequest($"Product with ID {inventoryItem.ProductId} does not exist.");
+                }
             _context.InventoryItems.Add(inventoryItem);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(Get), new { id = inventoryItem.Id }, inventoryItem);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, InventoryItem inventoryItem)
         {
@@ -82,7 +96,7 @@ namespace InventoryService.Controllers
 
             return NoContent();
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -133,6 +147,12 @@ namespace InventoryService.Controllers
             return NoContent();
         }
 
+        private async Task<bool> CheckProductExistsAsync(int productId)
+        {
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.GetAsync($"http://localhost:5284/api/product/{productId}"); // Replace with actual URL
+            return response.IsSuccessStatusCode;
+        }
         
     }
 }

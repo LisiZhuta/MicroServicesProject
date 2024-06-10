@@ -5,6 +5,7 @@ using OrderService.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -24,18 +25,20 @@ namespace OrderService.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Order>>> Get()
         {
             return await _context.Orders.Include(o => o.Items).ToListAsync();
         }
 
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<Order>> Get(int id)
         {
             var order = await _context.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id);
             if (order == null)
             {
-                return NotFound();
+                return NotFound($"Order with ID {id} doesnt exist");
             }
             return order;
         }
@@ -91,7 +94,7 @@ namespace OrderService.Controllers
             var order = await _context.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id);
             if (order == null)
             {
-                return BadRequest($"Order with id {id} exist");
+                return BadRequest($"Order with ID {id} exist");
             }
 
             // Add back the quantities to inventory

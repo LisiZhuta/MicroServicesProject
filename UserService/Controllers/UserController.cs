@@ -42,7 +42,7 @@ namespace UserService.Controllers
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == loginRequest.Username && u.Password == loginRequest.Password);
             if (existingUser == null)
             {
-                return Unauthorized();
+                return NotFound("Invalid information or User doesnt exist");
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
