@@ -12,7 +12,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Read the JWT key from environment variables
-var key = Environment.GetEnvironmentVariable("JWT_KEY");
+var key = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrEmpty(key))
 {
     throw new InvalidOperationException("JWT key is not configured.");

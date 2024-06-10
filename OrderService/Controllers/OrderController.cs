@@ -28,17 +28,29 @@ namespace OrderService.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<Order>>> Get()
         {
-            return await _context.Orders.Include(o => o.Items).ToListAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized("User ID is missing in the token.");
+            }
+            var userIdInt = int.Parse(userId);
+            return await _context.Orders.Include(o => o.Items).Where(o => o.UserId == userIdInt).ToListAsync();
         }
 
         [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<Order>> Get(int id)
         {
-            var order = await _context.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized("User ID is missing in the token.");
+            }
+            var userIdInt = int.Parse(userId);
+            var order = await _context.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id && o.UserId == userIdInt);
             if (order == null)
             {
-                return NotFound($"Order with ID {id} doesnt exist");
+                return NotFound($"Order with ID {id} doesn't exist");
             }
             return order;
         }
@@ -47,6 +59,13 @@ namespace OrderService.Controllers
         [HttpPost]
         public async Task<ActionResult<Order>> Create(Order order)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized("User ID is missing in the token.");
+            }
+            order.UserId = int.Parse(userId);
+
             var total = 0m;
 
             foreach (var item in order.Items)
@@ -91,10 +110,17 @@ namespace OrderService.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Cancel(int id)
         {
-            var order = await _context.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized("User ID is missing in the token.");
+            }
+            var userIdInt = int.Parse(userId);
+
+            var order = await _context.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id && o.UserId == userIdInt);
             if (order == null)
             {
-                return BadRequest($"Order with ID {id} exist");
+                return BadRequest($"Order with ID {id} doesn't exist");
             }
 
             // Add back the quantities to inventory
@@ -162,9 +188,5 @@ namespace OrderService.Controllers
             var response = await client.PutAsync($"http://localhost:5137/api/inventory/increase", content); // Replace with actual URL and port
             return response.IsSuccessStatusCode;
         }
-
-        
     }
-
-   
 }

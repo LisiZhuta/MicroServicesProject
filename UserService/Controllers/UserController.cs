@@ -42,7 +42,7 @@ namespace UserService.Controllers
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == loginRequest.Username && u.Password == loginRequest.Password);
             if (existingUser == null)
             {
-                return NotFound("Invalid information or User doesnt exist");
+                return NotFound("Invalid information or User doesn't exist");
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -51,7 +51,7 @@ namespace UserService.Controllers
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, existingUser.Id.ToString()),
+                    new Claim(ClaimTypes.NameIdentifier, existingUser.Id.ToString()), // Changed to NameIdentifier
                     new Claim(ClaimTypes.Role, existingUser.Role)
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),
@@ -61,6 +61,24 @@ namespace UserService.Controllers
             return Ok(new { Token = tokenHandler.WriteToken(token) });
         }
 
-        
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("User ID is missing in the token.");
+            }
+
+            var userId = int.Parse(userIdClaim.Value);
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            return Ok(user);
+        }
     }
 }
