@@ -10,7 +10,7 @@ using OrderService.Models;
 namespace OrderService.Migrations
 {
     [DbContext(typeof(OrderContext))]
-    [Migration("20240608232349_Initial")]
+    [Migration("20240611222833_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

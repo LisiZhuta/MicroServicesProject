@@ -62,7 +62,19 @@ namespace InventoryService.Controllers
                 {
                     return BadRequest($"Product with ID {inventoryItem.ProductId} does not exist.");
                 }
-            _context.InventoryItems.Add(inventoryItem);
+
+             var existingInventory = await _context.InventoryItems
+                .Where(t => t.ProductId == inventoryItem.ProductId)
+                .FirstOrDefaultAsync();
+
+             if (existingInventory != null)
+             {
+               existingInventory.Quantity = inventoryItem.Quantity;
+                _context.InventoryItems.Update(existingInventory);
+            } 
+            else{
+                _context.InventoryItems.Add(inventoryItem);
+            }
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(Get), new { id = inventoryItem.Id }, inventoryItem);
         }
