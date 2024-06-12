@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient(); // Register IHttpClientFactory
 
 // Read the JWT key from environment variables
 var key = Environment.GetEnvironmentVariable("JWT_KEY");

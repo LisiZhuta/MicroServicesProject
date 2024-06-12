@@ -123,6 +123,23 @@ namespace InventoryService.Controllers
 
             return NoContent();
         }
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("product/{productId}")]
+        public async Task<IActionResult> DeleteInventoryByProductIdAsync(int productId)
+    {
+            var inventoryItems = await _context.InventoryItems.Where(i => i.ProductId == productId).ToListAsync();
+
+            if (!inventoryItems.Any())
+    {
+            return NotFound($"No inventory items found for product with ID {productId}");
+    }
+
+            _context.InventoryItems.RemoveRange(inventoryItems);
+            await _context.SaveChangesAsync();
+
+    return Ok("Inventory items deleted successfully.");
+}
+
 
         [HttpPut("reduce")]
         public async Task<IActionResult> ReduceQuantity([FromBody] QuantityRequest request)
