@@ -55,9 +55,9 @@ namespace OrderService.Controllers
             return order;
         }
 
- [Authorize]
-[HttpPost]
-public async Task<ActionResult<Order>> Create(Order order)
+        [Authorize]
+        [HttpPost]
+    public async Task<ActionResult<Order>> Create(Order order)
 {
     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
     if (userId == null)
@@ -136,9 +136,9 @@ public async Task<ActionResult<Order>> Create(Order order)
 
 
 
-        [Authorize]
-[HttpDelete("{id}")]
-public async Task<IActionResult> Cancel(int id)
+    [Authorize]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Cancel(int id)
 {
     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
     if (userId == null)
@@ -180,7 +180,7 @@ public async Task<IActionResult> Cancel(int id)
 }
 
 
-        private async Task<decimal?> GetProductPriceAsync(int productId)
+    private async Task<decimal?> GetProductPriceAsync(int productId)
         {
             var client = _httpClientFactory.CreateClient();
             var response = await client.GetAsync($"http://localhost:5284/api/product/{productId}"); // Replace with actual URL
@@ -194,14 +194,14 @@ public async Task<IActionResult> Cancel(int id)
             return null;
         }
 
-        private async Task<bool> CheckProductExistsAsync(int productId)
+    private async Task<bool> CheckProductExistsAsync(int productId)
         {
             var client = _httpClientFactory.CreateClient();
             var response = await client.GetAsync($"http://localhost:5284/api/product/{productId}"); // Replace with actual URL
             return response.IsSuccessStatusCode;
         }
 
-        private async Task<int?> GetProductQuantityAsync(int productId)
+    private async Task<int?> GetProductQuantityAsync(int productId)
         {
             var client = _httpClientFactory.CreateClient();
             var response = await client.GetAsync($"http://localhost:5137/api/inventory/product/{productId}"); // Replace with actual URL and port
@@ -215,14 +215,14 @@ public async Task<IActionResult> Cancel(int id)
             return null;
         }
 
-        private async Task<bool> ReduceInventoryQuantityAsync(int productId, int quantity)
+    private async Task<bool> ReduceInventoryQuantityAsync(int productId, int quantity)
         {
             var client = _httpClientFactory.CreateClient();
             var content = new StringContent(JsonSerializer.Serialize(new { ProductId = productId, Quantity = quantity }), System.Text.Encoding.UTF8, "application/json");
             var response = await client.PutAsync($"http://localhost:5137/api/inventory/reduce", content); // Replace with actual URL and port
             return response.IsSuccessStatusCode;
         }
-        private async Task<bool> IncreaseInventoryQuantityAsync(int productId, int quantity)
+    private async Task<bool> IncreaseInventoryQuantityAsync(int productId, int quantity)
         {
             var client = _httpClientFactory.CreateClient();
             var content = new StringContent(JsonSerializer.Serialize(new { ProductId = productId, Quantity = quantity }), System.Text.Encoding.UTF8, "application/json");
@@ -230,7 +230,7 @@ public async Task<IActionResult> Cancel(int id)
             return response.IsSuccessStatusCode;
         }
 
-  private async Task<decimal?> GetUserBalanceAsync()
+    private async Task<decimal?> GetUserBalanceAsync()
 {
     var client = _httpClientFactory.CreateClient();
     
@@ -263,7 +263,7 @@ public async Task<IActionResult> Cancel(int id)
 }
 
 
-private async Task<bool> DeductUserBalanceAsync(int userId, decimal amount)
+    private async Task<bool> DeductUserBalanceAsync(int userId, decimal amount)
 {
     var client = _httpClientFactory.CreateClient();
     
@@ -294,7 +294,7 @@ private async Task<bool> DeductUserBalanceAsync(int userId, decimal amount)
 
     return false;
 }
-private async Task<bool> RefundUserBalanceAsync(int userId, decimal amount)
+    private async Task<bool> RefundUserBalanceAsync(int userId, decimal amount)
 {
     var client = _httpClientFactory.CreateClient();
 
