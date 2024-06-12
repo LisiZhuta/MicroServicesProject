@@ -19,7 +19,7 @@ namespace TransactionService.Controllers
             _context = context;
         }
 
-        [Authorize]
+        
         [HttpGet("balance")]
         public async Task<IActionResult> GetBalance()
         {
@@ -32,48 +32,101 @@ namespace TransactionService.Controllers
 
             var balance = await _context.Transactions
                 .Where(t => t.UserId == userIdInt)
-
-                .Select(t => t.Balance)
                 .FirstOrDefaultAsync();
 
             return Ok(balance);
         }
 
         [Authorize]
-        [HttpPost("assign-balance")]
-        public async Task<IActionResult> AssignBalance([FromBody] AssignBalanceRequest request)
+[HttpPost("assign-balance")]
+public async Task<IActionResult> AssignBalance([FromBody] AssignBalanceRequest request)
+{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (userId == null)
+    {
+        return Unauthorized("User ID is missing in the token.");
+    }
+    int userIdInt = int.Parse(userId);
+
+    var existingTransaction = await _context.Transactions
+        .Where(t => t.UserId == userIdInt)
+        .FirstOrDefaultAsync();
+
+    if (existingTransaction != null)
+    {
+        existingTransaction.Balance = request.Amount;
+        _context.Transactions.Update(existingTransaction);
+        await _context.SaveChangesAsync();
+        return Ok(existingTransaction);
+    }
+    else
+    {
+        var newTransaction = new Transaction
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
-            {
-                return Unauthorized("User ID is missing in the token.");
-            }
-            int userIdInt = int.Parse(userId);
+            UserId = userIdInt,
+            Balance = request.Amount,
 
-            var existingTransaction = await _context.Transactions
-                .Where(t => t.UserId == userIdInt)
+        };
+        _context.Transactions.Add(newTransaction);
+        await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetBalance), new { id = newTransaction.Id }, newTransaction);
+    }
+    }
 
-                .FirstOrDefaultAsync();
 
-            if (existingTransaction != null)
-            {
-                existingTransaction.Balance = request.Amount;
-                _context.Transactions.Update(existingTransaction);
-            }
-            else
-            {
-                var newTransaction = new Transaction
-                {
-                    UserId = userIdInt,
-                    Balance = request.Amount,
+        [Authorize]
+        [HttpPut("deduct-balance")]
+public async Task<IActionResult> DeductBalance([FromBody] BalanceRequestDTO request)
+{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (userId == null)
+    {
+        return Unauthorized("User ID is missing in the token.");
+    }
+    int userIdInt = int.Parse(userId);
 
-                };
-                _context.Transactions.Add(newTransaction);
-            }
+    var existingTransaction = await _context.Transactions
+        .Where(t => t.UserId == userIdInt)
+        .FirstOrDefaultAsync();
 
-            await _context.SaveChangesAsync();
+    if (existingTransaction == null || existingTransaction.Balance < request.Amount)
+    {
+        return BadRequest("Insufficient balance.");
+    }
 
-            return Ok("Balance assigned successfully");
-        }
+    existingTransaction.Balance -= request.Amount;
+    _context.Transactions.Update(existingTransaction);
+    await _context.SaveChangesAsync();
+
+    return Ok(existingTransaction);
+}
+[Authorize]
+[HttpPut("refund-balance")]
+public async Task<IActionResult> RefundBalance([FromBody] BalanceRequestDTO request)
+{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (userId == null)
+    {
+        return Unauthorized("User ID is missing in the token.");
+    }
+    int userIdInt = int.Parse(userId);
+
+    var existingTransaction = await _context.Transactions
+        .Where(t => t.UserId == userIdInt)
+        .FirstOrDefaultAsync();
+
+    if (existingTransaction == null)
+    {
+        return BadRequest("Transaction not found.");
+    }
+
+    existingTransaction.Balance += request.Amount;
+    _context.Transactions.Update(existingTransaction);
+    await _context.SaveChangesAsync();
+
+    return Ok(existingTransaction);
+}
+
+
     }
 }
