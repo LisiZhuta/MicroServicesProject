@@ -68,7 +68,7 @@ namespace OrderService.Controllers
 
     var total = 0m;
 
-    // Calculate the total cost of the order
+
     foreach (var item in order.Items)
     {
         var productExists = await CheckProductExistsAsync(item.ProductId);
@@ -83,7 +83,7 @@ namespace OrderService.Controllers
             return BadRequest($"Could not fetch price for product ID {item.ProductId}");
         }
 
-        item.Order = order; // Associate the Order with OrderItems
+        item.Order = order; 
         total += item.Quantity * price.Value;
     }
 
@@ -183,7 +183,7 @@ namespace OrderService.Controllers
     private async Task<decimal?> GetProductPriceAsync(int productId)
         {
             var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync($"http://localhost:5284/api/product/{productId}"); // Replace with actual URL
+            var response = await client.GetAsync($"http://localhost:5284/api/product/{productId}"); 
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
@@ -197,14 +197,14 @@ namespace OrderService.Controllers
     private async Task<bool> CheckProductExistsAsync(int productId)
         {
             var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync($"http://localhost:5284/api/product/{productId}"); // Replace with actual URL
+            var response = await client.GetAsync($"http://localhost:5284/api/product/{productId}"); 
             return response.IsSuccessStatusCode;
         }
 
     private async Task<int?> GetProductQuantityAsync(int productId)
         {
             var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync($"http://localhost:5137/api/inventory/product/{productId}"); // Replace with actual URL and port
+            var response = await client.GetAsync($"http://localhost:5137/api/inventory/product/{productId}"); 
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
@@ -219,14 +219,14 @@ namespace OrderService.Controllers
         {
             var client = _httpClientFactory.CreateClient();
             var content = new StringContent(JsonSerializer.Serialize(new { ProductId = productId, Quantity = quantity }), System.Text.Encoding.UTF8, "application/json");
-            var response = await client.PutAsync($"http://localhost:5137/api/inventory/reduce", content); // Replace with actual URL and port
+            var response = await client.PutAsync($"http://localhost:5137/api/inventory/reduce", content); 
             return response.IsSuccessStatusCode;
         }
     private async Task<bool> IncreaseInventoryQuantityAsync(int productId, int quantity)
         {
             var client = _httpClientFactory.CreateClient();
             var content = new StringContent(JsonSerializer.Serialize(new { ProductId = productId, Quantity = quantity }), System.Text.Encoding.UTF8, "application/json");
-            var response = await client.PutAsync($"http://localhost:5137/api/inventory/increase", content); // Replace with actual URL and port
+            var response = await client.PutAsync($"http://localhost:5137/api/inventory/increase", content); 
             return response.IsSuccessStatusCode;
         }
 
@@ -245,7 +245,7 @@ namespace OrderService.Controllers
     // Add the token to the HttpClient's Authorization header
     client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token.Split(' ').Last());
 
-    var response = await client.GetAsync("http://localhost:5033/api/transaction/balance"); // Ensure this URL is correct
+    var response = await client.GetAsync("http://localhost:5033/api/transaction/balance"); 
     if (response.IsSuccessStatusCode)
     {
         var content = await response.Content.ReadAsStringAsync();
@@ -279,7 +279,7 @@ namespace OrderService.Controllers
     client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token.Split(' ').Last());
 
     var content = new StringContent(JsonSerializer.Serialize(new { Amount = amount }), System.Text.Encoding.UTF8, "application/json");
-    var response = await client.PutAsync($"http://localhost:5033/api/transaction/deduct-balance", content); // Replace with actual URL
+    var response = await client.PutAsync($"http://localhost:5033/api/transaction/deduct-balance", content); 
     
     if (response.IsSuccessStatusCode)
     {
@@ -311,7 +311,7 @@ namespace OrderService.Controllers
 
     var content = new StringContent(JsonSerializer.Serialize(new { Amount = amount }), System.Text.Encoding.UTF8, "application/json");
     Console.WriteLine($"Sending refund request for user {userId} with amount {amount}");
-    var response = await client.PutAsync($"http://localhost:5033/api/transaction/refund-balance", content); // Replace with actual URL
+    var response = await client.PutAsync($"http://localhost:5033/api/transaction/refund-balance", content); 
     
     if (response.IsSuccessStatusCode)
     {

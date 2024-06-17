@@ -66,7 +66,7 @@ namespace ProductService.Controllers
                 return NotFound($"Product with ID {id} does not exist.");
             }
 
-            // Call the private method to delete inventory items
+
             var inventoryDeleted = await DeleteInventoryByProductIdAsync(id);
             if (!inventoryDeleted)
             {
@@ -82,7 +82,7 @@ namespace ProductService.Controllers
 {
     var client = _httpClientFactory.CreateClient();
     
-    // Extract the token from the current request's Authorization header
+
     var token = Request.Headers["Authorization"].ToString();
     if (string.IsNullOrEmpty(token))
     {

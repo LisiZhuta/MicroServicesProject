@@ -179,7 +179,7 @@ namespace InventoryService.Controllers
         private async Task<bool> CheckProductExistsAsync(int productId)
         {
             var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync($"http://localhost:5284/api/product/{productId}"); // Replace with actual URL
+            var response = await client.GetAsync($"http://localhost:5284/api/product/{productId}"); 
             return response.IsSuccessStatusCode;
         }
         
